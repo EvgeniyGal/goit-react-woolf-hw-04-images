@@ -1,0 +1,14 @@
+{
+  "files": {
+    "main.css": "/goit-react-woolf-hw-03-image-finder/static/css/main.69fcd32f.css",
+    "main.js": "/goit-react-woolf-hw-03-image-finder/static/js/main.d7cf4a1b.js",
+    "index.html": "/goit-react-woolf-hw-03-image-finder/index.html",
+    "static/media/srearch-icon.svg": "/goit-react-woolf-hw-03-image-finder/static/media/srearch-icon.3574a9c56b206a59caab.svg",
+    "main.69fcd32f.css.map": "/goit-react-woolf-hw-03-image-finder/static/css/main.69fcd32f.css.map",
+    "main.d7cf4a1b.js.map": "/goit-react-woolf-hw-03-image-finder/static/js/main.d7cf4a1b.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.69fcd32f.css",
+    "static/js/main.d7cf4a1b.js"
+  ]
+}
