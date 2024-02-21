@@ -4,21 +4,27 @@ import Button from './Button';
 import Modal from './Modal';
 import Loader from './Loader';
 import { getPhotoGallery } from '../services/pixabay-api';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
-const INITIAL_STATE = {
+const INITIAL_GALLERY_STATE = {
   galleryPhotos: [],
   page: 0,
   totalHits: 0,
   query: '',
 };
 
+const INITIAL_ACTIONS_STATE = {
+  currentPhoto: '',
+  isModalOpen: false,
+  isLoading: false,
+};
+
 const INITIAL_ERROR = { isError: false, message: '' };
 
 const PER_PAGE = 12;
 
-async function fetchPhotos(query, page, setIsLoading, error, setError) {
-  setIsLoading(true);
+async function fetchPhotos(query, page, setActions, error, setError) {
+  setActions(prevState => ({ ...prevState, isLoading: true }));
   try {
     const {
       data: { hits, totalHits },
@@ -33,62 +39,57 @@ async function fetchPhotos(query, page, setIsLoading, error, setError) {
   } catch (error) {
     setError({ isError: true, message: error.message });
   } finally {
-    setIsLoading(false);
+    setActions(prevState => ({ ...prevState, isLoading: false }));
   }
 }
 
 export default function App() {
-  const [galleryState, setGalleryState] = useState(INITIAL_STATE);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [currentPhoto, setCurrentPhoto] = useState('');
+  const [galleryState, setGalleryState] = useState(INITIAL_GALLERY_STATE);
+  const [actions, setActions] = useState(INITIAL_ACTIONS_STATE);
   const [error, setError] = useState(INITIAL_ERROR);
 
   async function handleSubmit(query) {
-    const fetchData = await fetchPhotos(
-      query,
-      1,
-      setIsLoading,
-      error,
-      setError
-    );
-
-    if (fetchData) {
-      setGalleryState({
-        galleryPhotos: fetchData.newPhotos,
-        page: 1,
-        totalHits: fetchData.totalHits,
-        query,
-      });
+    if (query !== galleryState.query) {
+      setGalleryState(() => ({ ...INITIAL_GALLERY_STATE, query, page: 1 }));
     }
   }
 
-  async function handleLoadMore() {
-    const fetchData = await fetchPhotos(
-      galleryState.query,
-      galleryState.page + 1,
-      setIsLoading,
-      error,
-      setError
-    );
+  useEffect(() => {
+    if (galleryState.page > 0) {
+      (async function handleFetch() {
+        const fetchData = await fetchPhotos(
+          galleryState.query,
+          galleryState.page,
+          setActions,
+          error,
+          setError
+        );
 
-    if (fetchData) {
-      setGalleryState(prevState => ({
-        ...prevState,
-        galleryPhotos: [...prevState.galleryPhotos, ...fetchData.newPhotos],
-        page: prevState.page + 1,
-        totalHits: fetchData.totalHits,
-      }));
+        if (fetchData) {
+          setGalleryState(prevState => ({
+            ...prevState,
+            galleryPhotos: [...prevState.galleryPhotos, ...fetchData.newPhotos],
+            totalHits: fetchData.totalHits,
+          }));
+        }
+      })();
     }
+  }, [galleryState.page, galleryState.query, error]);
+
+  async function handleLoadMore() {
+    setGalleryState(prevState => ({ ...prevState, page: prevState.page + 1 }));
   }
 
   function handleModalClose() {
-    setIsModalOpen(false);
+    setActions(prevState => ({ ...prevState, isModalOpen: false }));
   }
 
   function handleModalOpen(largeImageURL) {
-    setCurrentPhoto(largeImageURL);
-    setIsModalOpen(true);
+    setActions(prevState => ({
+      ...prevState,
+      isModalOpen: true,
+      currentPhoto: largeImageURL,
+    }));
   }
 
   return (
@@ -101,13 +102,13 @@ export default function App() {
           galleryPhotos={galleryState.galleryPhotos}
         />
       ) : undefined}
-      {isLoading && <Loader />}
+      {actions.isLoading && <Loader />}
       {error.isError && <p>{error.message}</p>}
       {galleryState.page < Math.ceil(galleryState.totalHits / PER_PAGE) ? (
         <Button onClick={handleLoadMore}>Load more</Button>
       ) : undefined}
-      {isModalOpen && (
-        <Modal url={currentPhoto} onModalClose={handleModalClose} />
+      {actions.isModalOpen && (
+        <Modal url={actions.currentPhoto} onModalClose={handleModalClose} />
       )}
     </div>
   );

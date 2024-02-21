@@ -1,19 +1,17 @@
-import { useCallback, useEffect } from 'react';
+import { useEffect } from 'react';
 
 export default function Modal({ onModalClose, url }) {
-  const handleKeydownESC = useCallback(
-    event => {
+  useEffect(() => {
+    function handleKeydownESC(event) {
       if (event.key === 'Escape') {
         onModalClose();
       }
-    },
-    [onModalClose]
-  );
+    }
 
-  useEffect(() => {
     document.addEventListener('keydown', handleKeydownESC);
+
     return () => document.removeEventListener('keydown', handleKeydownESC);
-  }, [handleKeydownESC]);
+  }, [onModalClose]);
 
   function handleDropDownClick(event) {
     if (event.target.classList.contains('Overlay')) {
